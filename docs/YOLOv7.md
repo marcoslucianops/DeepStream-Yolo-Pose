@@ -99,7 +99,7 @@ or
 
 #### 6. Copy generated files
 
-Copy the generated ONNX model file to the `DeepStream-Yolo` folder.
+Copy the generated ONNX model file to the `DeepStream-Yolo-Pose` folder.
 
 ##
 
