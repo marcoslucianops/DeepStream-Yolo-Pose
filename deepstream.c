@@ -30,7 +30,7 @@ GOptionEntry entries[] = {
   {"config-infer", 'c', 0, G_OPTION_ARG_STRING, &CONFIG_INFER, "Config infer file", NULL},
   {"streammux-batch-size", 'b', 0, G_OPTION_ARG_INT, &STREAMMUX_BATCH_SIZE, "Streammux batch-size (default: 1)", NULL},
   {"streammux-width", 'w', 0, G_OPTION_ARG_INT, &STREAMMUX_WIDTH, "Streammux width (default: 1920)", NULL},
-  {"streammux-height", 'h', 0, G_OPTION_ARG_INT, &STREAMMUX_HEIGHT, "Streammux height (default: 1080)", NULL},
+  {"streammux-height", 'e', 0, G_OPTION_ARG_INT, &STREAMMUX_HEIGHT, "Streammux height (default: 1080)", NULL},
   {"gpu-id", 'g', 0, G_OPTION_ARG_INT, &GPU_ID, "GPU id (default: 0)", NULL},
   {"fps-interval", 'f', 0, G_OPTION_ARG_INT, &PERF_MEASUREMENT_INTERVAL_SEC, "FPS measurement interval (default: 5)", NULL},
   {NULL}
@@ -87,9 +87,7 @@ parse_pose_from_meta(NvDsFrameMeta *frame_meta, NvDsObjectMeta *obj_meta)
       continue;
     }
 
-    if (display_meta->num_circles == MAX_ELEMENTS_IN_DISPLAY_META ||
-        display_meta->num_labels == MAX_ELEMENTS_IN_DISPLAY_META ||
-        display_meta->num_lines == MAX_ELEMENTS_IN_DISPLAY_META) {
+    if (display_meta->num_circles == MAX_ELEMENTS_IN_DISPLAY_META) {
       display_meta = nvds_acquire_display_meta_from_pool(batch_meta);
       nvds_add_display_meta_to_frame(frame_meta, display_meta);
     }
@@ -122,9 +120,7 @@ parse_pose_from_meta(NvDsFrameMeta *frame_meta, NvDsObjectMeta *obj_meta)
       continue;
     }
 
-    if (display_meta->num_circles == MAX_ELEMENTS_IN_DISPLAY_META ||
-        display_meta->num_labels == MAX_ELEMENTS_IN_DISPLAY_META ||
-        display_meta->num_lines == MAX_ELEMENTS_IN_DISPLAY_META) {
+    if (display_meta->num_lines == MAX_ELEMENTS_IN_DISPLAY_META) {
       display_meta = nvds_acquire_display_meta_from_pool(batch_meta);
       nvds_add_display_meta_to_frame(frame_meta, display_meta);
     }
@@ -197,9 +193,17 @@ cb_newpad(GstElement *decodebin, GstPad *pad, gpointer user_data)
   }
   const GstStructure *str = gst_caps_get_structure(caps, 0);
   const gchar *name = gst_structure_get_name(str);
+  GstCapsFeatures *features = gst_caps_get_features(caps, 0);
   if (!strncmp(name, "video", 5)) {
-    if (gst_pad_link(pad, streammux_sink_pad) != GST_PAD_LINK_OK) {
-      g_printerr("ERROR: Failed to link source to streammux sink pad\n");
+    if (gst_caps_features_contains(features, "memory:NVMM")) {
+      if (gst_pad_link(pad, streammux_sink_pad) != GST_PAD_LINK_OK) {
+        g_printerr("ERROR: Failed to link source to streammux sink pad\n");
+        gst_caps_unref(caps);
+        return;
+      }
+    }
+    else {
+      g_printerr("ERROR: decodebin did not pick NVIDIA decoder plugin\n");
       gst_caps_unref(caps);
       return;
     }

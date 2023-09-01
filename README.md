@@ -163,11 +163,42 @@ make -C nvdsinfer_custom_impl_Yolo_pose
 make
 ```
 
+**NOTE**: To use the Python code, you need to install the DeepStream Python bindings.
+
+Reference: https://github.com/NVIDIA-AI-IOT/deepstream_python_apps
+
+
+* x86 platform: 
+
+  ```
+  wget https://github.com/NVIDIA-AI-IOT/deepstream_python_apps/releases/download/v1.1.8/pyds-1.1.8-py3-none-linux_x86_64.whl
+  pip3 install pyds-1.1.8-py3-none-linux_x86_64.whl
+  ```
+
+* Jetson platform:
+
+  ```
+  wget https://github.com/NVIDIA-AI-IOT/deepstream_python_apps/releases/download/v1.1.8/pyds-1.1.8-py3-none-linux_aarch64.whl
+  pip3 install pyds-1.1.8-py3-none-linux_aarch64.whl
+  ```
+
+**NOTE**: It is recommended to use Python virtualenv.
+
+**NOTE**: The steps above only work on **DeepStream 6.3**. For previous versions, please check the files on the `NVIDIA-AI-IOT/deepstream_python_apps` repo.
+
 #### 8. Run
 
-```
-./deepstream -s file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4 -c config_infer_primary_yoloV8_pose.txt
-```
+* C code
+
+  ```
+  ./deepstream -s file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4 -c config_infer_primary_yoloV8_pose.txt
+  ```
+
+* Python code
+
+  ```
+  python3 deepstream.py -s file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4 -c config_infer_primary_yoloV8_pose.txt
+  ```
 
 **NOTE**: The TensorRT engine file may take a very long time to generate (sometimes more than 10 minutes).
 
@@ -202,7 +233,7 @@ make
 **NOTE**: To change the nvstreammux height (example for 720; default: 1080)
 
 ```
--h 720
+-e 720
 --streammux-height 720
 ```
 
