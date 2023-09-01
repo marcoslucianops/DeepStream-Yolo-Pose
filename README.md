@@ -6,13 +6,25 @@ NVIDIA DeepStream SDK application for YOLO-Pose models
 ### YOLO objetct detection models and other infos: https://github.com/marcoslucianops/DeepStream-Yolo
 --------------------------------------------------------------------------------------------------
 
-### Supported models
+### Getting started
 
-* [YOLOv8](https://github.com/ultralytics/ultralytics)
+* [Suported models](#supported-models)
+* [Instructions](#basic-usage)
+* [YOLOv7 usage](docs/YOLOv7.md)
+* [YOLOv8 usage](docs/YOLOv8.md)
+* [NMS configuration](#nms-configuration)
+* [Detection threshold configuration](#detection-threshold-configuration)
 
 ##
 
-### Basic usage
+### Supported models
+
+* [YOLOv8](https://github.com/ultralytics/ultralytics)
+* [YOLOv7](https://github.com/WongKinYiu/yolov7)
+
+##
+
+### Instructions
 
 #### 1. Download the DeepStream-Yolo-Pose repo
 
@@ -21,90 +33,7 @@ git clone https://github.com/marcoslucianops/DeepStream-Yolo-Pose.git
 cd DeepStream-Yolo-Pose
 ```
 
-#### 2. Download the YOLOv8 repo and install the requirements
-
-```
-git clone https://github.com/ultralytics/ultralytics.git
-cd ultralytics
-pip3 install -r requirements.txt
-python3 setup.py install
-pip3 install onnx onnxsim onnxruntime
-```
-
-**NOTE**: It is recommended to use Python virtualenv.
-
-#### 3. Copy conversor
-
-Copy the `export_yoloV8_pose.py` file from `DeepStream-Yolo-Pose/utils` directory to the `ultralytics` folder.
-
-#### 4. Download the model
-
-Download the `pt` file from [YOLOv8](https://github.com/ultralytics/assets/releases/) releases (example for YOLOv8s-Pose)
-
-```
-wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt
-```
-
-**NOTE**: You can use your custom model.
-
-#### 5. Convert model
-
-Generate the ONNX model file (example for YOLOv8s)
-
-```
-python3 export_yoloV8_pose.py -w yolov8s-pose.pt --dynamic
-```
-
-**NOTE**: To change the inference size (defaut: 640)
-
-```
--s SIZE
---size SIZE
--s HEIGHT WIDTH
---size HEIGHT WIDTH
-```
-
-Example for 1280
-
-```
--s 1280
-```
-
-or
-
-```
--s 1280 1280
-```
-
-**NOTE**: To simplify the ONNX model (DeepStream >= 6.0)
-
-```
---simplify
-```
-
-**NOTE**: To use dynamic batch-size (DeepStream >= 6.1)
-
-```
---dynamic
-```
-
-**NOTE**: To use implicit batch-size (example for batch-size = 4)
-
-```
---batch 4
-```
-
-**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 16.
-
-```
---opset 12
-```
-
-#### 6. Copy generated files
-
-Copy the generated ONNX model file to the `DeepStream-Yolo-Pose` folder.
-
-#### 7. Compile the libs
+#### 2. Compile the libs
 
 Export the CUDA_VER env according to your DeepStream version and platform:
 
@@ -186,7 +115,7 @@ Reference: https://github.com/NVIDIA-AI-IOT/deepstream_python_apps
 
 **NOTE**: The steps above only work on **DeepStream 6.3**. For previous versions, please check the files on the `NVIDIA-AI-IOT/deepstream_python_apps` repo.
 
-#### 8. Run
+#### 3. Run
 
 * C code
 
@@ -249,36 +178,6 @@ Reference: https://github.com/NVIDIA-AI-IOT/deepstream_python_apps
 ```
 -f 10
 --fps-interval 10
-```
-
-##
-
-### Edit the config_infer_primary_yoloV8_pose file
-
-Edit the `config_infer_primary_yoloV8_pose.txt` file according to your model (example for YOLOv8s-Pose)
-
-```
-[property]
-...
-onnx-file=yolov8s-pose.onnx
-...
-```
-
-**NOTE**: The **YOLOv8-Pose** resizes the input with center padding. To get better accuracy, use
-
-```
-...
-maintain-aspect-ratio=1
-symmetric-padding=1
-...
-```
-
-**NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
-
-```
-...
-force-implicit-batch-dim=1
-...
 ```
 
 ##

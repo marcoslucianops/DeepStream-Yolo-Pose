@@ -50,7 +50,7 @@ class GETFPS:
             self.total_frame_count = self.total_frame_count + self.frame_count
             current_fps = float(self.frame_count) / current_time
             avg_fps = float(self.total_frame_count) / self.total_fps_time
-            sys.stdout.write('FPS of stream %d: %.2f (%.2f)\n' % (self.stream_id + 1, current_fps, avg_fps))
+            sys.stdout.write('DEBUG: FPS of stream %d: %.2f (%.2f)\n' % (self.stream_id + 1, current_fps, avg_fps))
             self.start_time = end_time
             self.frame_count = 0
         else:

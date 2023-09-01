@@ -5,10 +5,10 @@ import warnings
 import onnx
 import torch
 import torch.nn as nn
-from copy import deepcopy
-from ultralytics import YOLO
-from ultralytics.yolo.utils.torch_utils import select_device
-from ultralytics.nn.modules import C2f, Detect
+import models
+from models.experimental import attempt_load
+from utils.torch_utils import select_device
+from utils.activations import Hardswish, SiLU
 
 
 class DeepStreamOutput(nn.Module):
@@ -16,10 +16,12 @@ class DeepStreamOutput(nn.Module):
         super().__init__()
 
     def forward(self, x):
-        x = x.transpose(1, 2)
+        x = x[0]
         boxes = x[:, :, :4]
-        scores = x[:, :, 4:5]
-        kpts = x[:, :, 5:]
+        objectness = x[:, :, 4:5]
+        scores = x[:, :, 5:6]
+        scores *= objectness
+        kpts = x[:, :, 6:]
         return boxes, scores, kpts
 
 
@@ -29,21 +31,18 @@ def suppress_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 
-def yolov8_export(weights, device):
-    model = YOLO(weights)
-    model = deepcopy(model.model).to(device)
-    for p in model.parameters():
-        p.requires_grad = False
-    model.eval()
-    model.float()
-    model = model.fuse()
+def yolov7_export(weights, device):
+    model = attempt_load(weights, map_location=device)
     for k, m in model.named_modules():
-        if isinstance(m, Detect):
-            m.dynamic = False
-            m.export = True
-            m.format = 'onnx'
-        elif isinstance(m, C2f):
-            m.forward = m.forward_split
+        m._non_persistent_buffers_set = set()
+        if isinstance(m, models.common.Conv):
+            if isinstance(m.act, nn.Hardswish):
+                m.act = Hardswish()
+            elif isinstance(m.act, nn.SiLU):
+                m.act = SiLU()
+    model.model[-1].export = False
+    model.model[-1].concat = True
+    model.eval()
     return model
 
 
@@ -52,14 +51,17 @@ def main(args):
 
     print('\nStarting: %s' % args.weights)
 
-    print('Opening YOLOv8-Pose model\n')
+    print('Opening YOLOv7-Pose model\n')
 
     device = select_device('cpu')
-    model = yolov8_export(args.weights, device)
+    model = yolov7_export(args.weights, device)
 
     model = nn.Sequential(model, DeepStreamOutput())
 
     img_size = args.size * 2 if len(args.size) == 1 else args.size
+
+    if img_size == [640, 640] and args.p6:
+        img_size = [1280] * 2
 
     onnx_input_im = torch.zeros(args.batch, 3, *img_size).to(device)
     onnx_output_file = os.path.basename(args.weights).split('.pt')[0] + '.onnx'
@@ -95,10 +97,11 @@ def main(args):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='DeepStream YOLOv8-Pose conversion')
+    parser = argparse.ArgumentParser(description='DeepStream YOLOv7-Pose conversion')
     parser.add_argument('-w', '--weights', required=True, help='Input weights (.pt) file path (required)')
     parser.add_argument('-s', '--size', nargs='+', type=int, default=[640], help='Inference size [H,W] (default [640])')
-    parser.add_argument('--opset', type=int, default=16, help='ONNX opset version')
+    parser.add_argument('--p6', action='store_true', help='P6 model')
+    parser.add_argument('--opset', type=int, default=12, help='ONNX opset version')
     parser.add_argument('--simplify', action='store_true', help='ONNX simplify model')
     parser.add_argument('--dynamic', action='store_true', help='Dynamic batch-size')
     parser.add_argument('--batch', type=int, default=1, help='Implicit batch-size')
