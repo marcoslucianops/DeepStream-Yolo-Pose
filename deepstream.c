@@ -69,10 +69,10 @@ parse_pose_from_meta(NvDsFrameMeta *frame_meta, NvDsObjectMeta *obj_meta)
 {
   guint num_joints = obj_meta->mask_params.size / (sizeof(float) * 3);
 
-  gfloat gain = MIN((gfloat) obj_meta->mask_params.width / frame_meta->source_frame_width,
-      (gfloat) obj_meta->mask_params.height / frame_meta->source_frame_height);
-  gfloat pad_x = (obj_meta->mask_params.width - frame_meta->source_frame_width * gain) / 2.0;
-  gfloat pad_y = (obj_meta->mask_params.height - frame_meta->source_frame_height * gain) / 2.0;
+  gfloat gain = MIN((gfloat) obj_meta->mask_params.width / STREAMMUX_WIDTH,
+      (gfloat) obj_meta->mask_params.height / STREAMMUX_HEIGHT);
+  gfloat pad_x = (obj_meta->mask_params.width - STREAMMUX_WIDTH * gain) / 2.0;
+  gfloat pad_y = (obj_meta->mask_params.height - STREAMMUX_HEIGHT * gain) / 2.0;
 
   NvDsBatchMeta *batch_meta = frame_meta->base_meta.batch_meta;
   NvDsDisplayMeta *display_meta = nvds_acquire_display_meta_from_pool(batch_meta);

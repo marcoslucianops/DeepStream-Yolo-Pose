@@ -86,10 +86,10 @@ def set_custom_bbox(obj_meta):
 def parse_pose_from_meta(frame_meta, obj_meta):
     num_joints = int(obj_meta.mask_params.size / (sizeof(c_float) * 3))
 
-    gain = min(obj_meta.mask_params.width / frame_meta.source_frame_width,
-               obj_meta.mask_params.height / frame_meta.source_frame_height)
-    pad_x = (obj_meta.mask_params.width - frame_meta.source_frame_width * gain) / 2.0
-    pad_y = (obj_meta.mask_params.height - frame_meta.source_frame_height * gain) / 2.0
+    gain = min(obj_meta.mask_params.width / STREAMMUX_WIDTH,
+               obj_meta.mask_params.height / STREAMMUX_HEIGHT)
+    pad_x = (obj_meta.mask_params.width - STREAMMUX_WIDTH * gain) / 2.0
+    pad_y = (obj_meta.mask_params.height - STREAMMUX_HEIGHT * gain) / 2.0
 
     batch_meta = frame_meta.base_meta.batch_meta
     display_meta = pyds.nvds_acquire_display_meta_from_pool(batch_meta)
