@@ -315,7 +315,7 @@ def main():
     sys.stdout.write('STREAMMUX_HEIGHT: %d\n' % STREAMMUX_HEIGHT)
     sys.stdout.write('GPU_ID: %d\n' % GPU_ID)
     sys.stdout.write('PERF_MEASUREMENT_INTERVAL_SEC: %d\n' % PERF_MEASUREMENT_INTERVAL_SEC)
-    sys.stdout.write('JETSON: %s\n' % ('TRUE' if is_aarch64 else 'FALSE'))
+    sys.stdout.write('JETSON: %s\n' % ('TRUE' if is_aarch64() else 'FALSE'))
     sys.stdout.write('\n')
 
     streammux.set_property('batch-size', STREAMMUX_BATCH_SIZE)
