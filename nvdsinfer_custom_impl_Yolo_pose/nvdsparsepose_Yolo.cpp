@@ -130,8 +130,9 @@ addBBoxProposal(const float bx1, const float by1, const float bx2, const float b
 {
   bbi = convertBBox(bx1, by1, bx2, by2, netW, netH);
 
-  if (bbi.width < 1 || bbi.height < 1)
+  if (bbi.width < 1 || bbi.height < 1) {
       return;
+  }
 
   bbi.detectionConfidence = maxProb;
   bbi.classId = maxIndex;

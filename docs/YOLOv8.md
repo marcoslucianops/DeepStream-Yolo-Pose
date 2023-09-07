@@ -37,7 +37,7 @@ wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose
 
 #### 4. Convert model
 
-Generate the ONNX model file (example for YOLOv8s)
+Generate the ONNX model file (example for YOLOv8s-Pose)
 
 ```
 python3 export_yoloV8_pose.py -w yolov8s-pose.pt --dynamic

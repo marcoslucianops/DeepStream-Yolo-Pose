@@ -8,7 +8,7 @@ NVIDIA DeepStream SDK application for YOLO-Pose models
 
 ### Getting started
 
-* [Suported models](#supported-models)
+* [Supported models](#supported-models)
 * [Instructions](#basic-usage)
 * [YOLOv7 usage](docs/YOLOv7.md)
 * [YOLOv8 usage](docs/YOLOv8.md)
