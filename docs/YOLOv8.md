@@ -76,16 +76,10 @@ or
 --dynamic
 ```
 
-**NOTE**: To use implicit batch-size (example for batch-size = 4)
+**NOTE**: To use explicit batch-size (example for batch-size = 4)
 
 ```
 --batch 4
-```
-
-**NOTE**: If you are using the DeepStream 5.1, remove the `--dynamic` arg and use opset 12 or lower. The default opset is 16.
-
-```
---opset 12
 ```
 
 #### 5. Copy generated files
@@ -103,21 +97,22 @@ Edit the `config_infer_primary_yoloV8_pose.txt` file according to your model (ex
 ...
 onnx-file=yolov8s-pose.onnx
 ...
-...
 ```
 
 **NOTE**: The **YOLOv8-Pose** resizes the input with center padding. To get better accuracy, use
 
 ```
+[property]
 ...
 maintain-aspect-ratio=1
 symmetric-padding=1
 ...
 ```
 
-**NOTE**: By default, the dynamic batch-size is set. To use implicit batch-size, uncomment the line
+**NOTE**: By default, the explicit batch-size is set. To use implicit batch-size, uncomment the line
 
 ```
+[property]
 ...
 force-implicit-batch-dim=1
 ...

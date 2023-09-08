@@ -67,19 +67,13 @@ Export the CUDA_VER env according to your DeepStream version and platform:
   export CUDA_VER=11.4
   ```
 
-* DeepStream 5.1 on x86 platform
-
-  ```
-  export CUDA_VER=11.1
-  ```
-
 * DeepStream 6.3 / 6.2 / 6.1.1 / 6.1 on Jetson platform
 
   ```
   export CUDA_VER=11.4
   ```
 
-* DeepStream 6.0.1 / 6.0 / 5.1 on Jetson platform
+* DeepStream 6.0.1 / 6.0 on Jetson platform
 
   ```
   export CUDA_VER=10.2
