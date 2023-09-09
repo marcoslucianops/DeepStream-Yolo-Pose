@@ -76,7 +76,7 @@ or
 --dynamic
 ```
 
-**NOTE**: To use explicit batch-size (example for batch-size = 4)
+**NOTE**: To use static batch-size (example for batch-size = 4)
 
 ```
 --batch 4
