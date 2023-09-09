@@ -1,4 +1,4 @@
-# YOLOv7 usage
+# YOLOv7-Pose usage
 
 **NOTE**: The yaml file is not required.
 
@@ -115,14 +115,5 @@ onnx-file=yolov7-w6-pose.onnx
 ...
 maintain-aspect-ratio=1
 symmetric-padding=1
-...
-```
-
-**NOTE**: By default, the explicit batch-size is set. To use implicit batch-size, uncomment the line
-
-```
-[property]
-...
-force-implicit-batch-dim=1
 ...
 ```

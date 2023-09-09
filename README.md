@@ -10,8 +10,8 @@ NVIDIA DeepStream SDK application for YOLO-Pose models
 
 * [Supported models](#supported-models)
 * [Instructions](#basic-usage)
-* [YOLOv7 usage](docs/YOLOv7.md)
-* [YOLOv8 usage](docs/YOLOv8.md)
+* [YOLOv7-Pose usage](docs/YOLOv7_Pose.md)
+* [YOLOv8-Pose usage](docs/YOLOv8_Pose.md)
 * [NMS configuration](#nms-configuration)
 * [Detection threshold configuration](#detection-threshold-configuration)
 
@@ -19,8 +19,8 @@ NVIDIA DeepStream SDK application for YOLO-Pose models
 
 ### Supported models
 
-* [YOLOv8](https://github.com/ultralytics/ultralytics)
-* [YOLOv7](https://github.com/WongKinYiu/yolov7)
+* [YOLOv8-Pose](https://github.com/ultralytics/ultralytics)
+* [YOLOv7-Pose](https://github.com/WongKinYiu/yolov7)
 
 ##
 
