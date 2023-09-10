@@ -260,51 +260,51 @@ def main():
 
     pipeline = Gst.Pipeline()
     if not pipeline:
-        sys.stderr.write('ERROR: Falied to create pipeline\n')
+        sys.stderr.write('ERROR: Failed to create pipeline\n')
         sys.exit(1)
 
     streammux = Gst.ElementFactory.make('nvstreammux', 'nvstreammux')
     if not streammux:
-        sys.stderr.write('ERROR: Falied to create nvstreammux\n')
+        sys.stderr.write('ERROR: Failed to create nvstreammux\n')
         sys.exit(1)
     pipeline.add(streammux)
 
     source_bin = create_uridecode_bin(0, SOURCE, streammux)
     if not source_bin:
-        sys.stderr.write('ERROR: Falied to create source_bin\n')
+        sys.stderr.write('ERROR: Failed to create source_bin\n')
         sys.exit(1)
     pipeline.add(source_bin)
 
     pgie = Gst.ElementFactory.make('nvinfer', 'pgie')
     if not pgie:
-        sys.stderr.write('ERROR: Falied to create nvinfer\n')
+        sys.stderr.write('ERROR: Failed to create nvinfer\n')
         sys.exit(1)
 
     tracker = Gst.ElementFactory.make('nvtracker', 'nvtracker')
     if not tracker:
-        sys.stderr.write('ERROR: Falied to create nvtracker\n')
+        sys.stderr.write('ERROR: Failed to create nvtracker\n')
         sys.exit(1)
 
     converter = Gst.ElementFactory.make('nvvideoconvert', 'nvvideoconvert')
     if not converter:
-        sys.stderr.write('ERROR: Falied to create nvvideoconvert\n')
+        sys.stderr.write('ERROR: Failed to create nvvideoconvert\n')
         sys.exit(1)
 
     osd = Gst.ElementFactory.make('nvdsosd', 'nvdsosd')
     if not osd:
-        sys.stderr.write('ERROR: Falied to create nvdsosd\n')
+        sys.stderr.write('ERROR: Failed to create nvdsosd\n')
         sys.exit(1)
 
     sink = None
     if is_aarch64():
         sink = Gst.ElementFactory.make('nv3dsink', 'nv3dsink')
         if not sink:
-            sys.stderr.write('ERROR: Falied to create nv3dsink\n')
+            sys.stderr.write('ERROR: Failed to create nv3dsink\n')
             sys.exit(1)
     else:
         sink = Gst.ElementFactory.make('nveglglessink', 'nveglglessink')
         if not sink:
-            sys.stderr.write('ERROR: Falied to create nveglglessink\n')
+            sys.stderr.write('ERROR: Failed to create nveglglessink\n')
             sys.exit(1)
 
     sys.stdout.write('\n')
@@ -376,7 +376,7 @@ def main():
 
     tracker_src_pad = tracker.get_static_pad('src')
     if not tracker_src_pad:
-        sys.stderr.write('ERROR: Falied to get tracker src pad\n')
+        sys.stderr.write('ERROR: Failed to get tracker src pad\n')
         sys.exit(1)
     else:
         tracker_src_pad.add_probe(Gst.PadProbeType.BUFFER, tracker_src_pad_buffer_probe, 0)

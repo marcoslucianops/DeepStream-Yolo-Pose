@@ -310,41 +310,41 @@ main(gint argc, char *argv[])
 
   GstElement *pipeline = gst_pipeline_new("deepstream");
   if (!pipeline) {
-    g_printerr("ERROR: Falied to create pipeline\n");
+    g_printerr("ERROR: Failed to create pipeline\n");
     return -1;
   }
   GstElement *streammux = gst_element_factory_make("nvstreammux", "nvstreammux");
   if (!streammux) {
-    g_printerr("ERROR: Falied to create nvstreammux\n");
+    g_printerr("ERROR: Failed to create nvstreammux\n");
     return -1;
   }
   gst_bin_add(GST_BIN(pipeline), streammux);
 
   GstElement *source_bin = create_uridecode_bin(0, SOURCE, streammux);
   if (!source_bin) {
-    g_printerr("ERROR: Falied to create source_bin\n");
+    g_printerr("ERROR: Failed to create source_bin\n");
     return -1;
   }
   gst_bin_add(GST_BIN(pipeline), source_bin);
 
   GstElement *pgie = gst_element_factory_make("nvinfer", "nvinfer");
   if (!pgie) {
-    g_printerr("ERROR: Falied to create nvinfer\n");
+    g_printerr("ERROR: Failed to create nvinfer\n");
     return -1;
   }
   GstElement *tracker = gst_element_factory_make("nvtracker", "nvtracker");
   if (!tracker) {
-    g_printerr("ERROR: Falied to create nvtracker\n");
+    g_printerr("ERROR: Failed to create nvtracker\n");
     return -1;
   }
   GstElement *converter = gst_element_factory_make("nvvideoconvert", "nvvideoconvert");
   if (!converter) {
-    g_printerr("ERROR: Falied to create nvvideoconvert\n");
+    g_printerr("ERROR: Failed to create nvvideoconvert\n");
     return -1;
   }
   GstElement *osd = gst_element_factory_make("nvdsosd", "nvdsosd");
   if (!osd) {
-    g_printerr("ERROR: Falied to create nvdsosd\n");
+    g_printerr("ERROR: Failed to create nvdsosd\n");
     return -1;
   }
 
@@ -352,14 +352,14 @@ main(gint argc, char *argv[])
   if (JETSON) {
     sink = gst_element_factory_make("nv3dsink", "nv3dsink");
     if (!sink) {
-      g_printerr("ERROR: Falied to create nv3dsink\n");
+      g_printerr("ERROR: Failed to create nv3dsink\n");
       return -1;
     }
   }
   else {
     sink = gst_element_factory_make("nveglglessink", "nveglglessink");
     if (!sink) {
-      g_printerr("ERROR: Falied to create nveglglessink\n");
+      g_printerr("ERROR: Failed to create nveglglessink\n");
       return -1;
     }
   }
@@ -417,7 +417,7 @@ main(gint argc, char *argv[])
 
   GstPad *tracker_src_pad = gst_element_get_static_pad(tracker, "src");
   if (!tracker_src_pad) {
-    g_printerr("ERROR: Falied to get tracker src pad\n");
+    g_printerr("ERROR: Failed to get tracker src pad\n");
     return -1;
   }
   else
@@ -427,7 +427,7 @@ main(gint argc, char *argv[])
   NvDsAppPerfStructInt *perf_struct;
   GstPad *converter_sink_pad = gst_element_get_static_pad(converter, "sink");
   if (!converter_sink_pad) {
-    g_printerr("ERROR: Falied to get converter sink pad\n");
+    g_printerr("ERROR: Failed to get converter sink pad\n");
     return -1;
   }
   else {
