@@ -84,7 +84,7 @@ def set_custom_bbox(obj_meta):
 
 
 def parse_pose_from_meta(frame_meta, obj_meta):
-    num_joints = int(obj_meta.mask_params.size / (sizeof(c_float) * 3))
+    num_joints = int(obj_meta.mask_params.size / (sizeof(c_float) * 2))
 
     gain = min(obj_meta.mask_params.width / STREAMMUX_WIDTH,
                obj_meta.mask_params.height / STREAMMUX_HEIGHT)
@@ -97,11 +97,10 @@ def parse_pose_from_meta(frame_meta, obj_meta):
 
     for i in range(num_joints):
         data = obj_meta.mask_params.get_mask_array()
-        xc = int((data[i * 3 + 0] - pad_x) / gain)
-        yc = int((data[i * 3 + 1] - pad_y) / gain)
-        confidence = data[i * 3 + 2]
-
-        if confidence < 0.5:
+        xc = int((data[i * 2 + 0] - pad_x) / gain)
+        yc = int((data[i * 2 + 1] - pad_y) / gain)
+        # confidence = data[i * 3 + 2]
+        if xc < 0 or yc < 0:
             continue
 
         if display_meta.num_circles == MAX_ELEMENTS_IN_DISPLAY_META:
@@ -125,14 +124,12 @@ def parse_pose_from_meta(frame_meta, obj_meta):
 
     for i in range(num_joints + 2):
         data = obj_meta.mask_params.get_mask_array()
-        x1 = int((data[(skeleton[i][0] - 1) * 3 + 0] - pad_x) / gain)
-        y1 = int((data[(skeleton[i][0] - 1) * 3 + 1] - pad_y) / gain)
-        confidence1 = data[(skeleton[i][0] - 1) * 3 + 2]
-        x2 = int((data[(skeleton[i][1] - 1) * 3 + 0] - pad_x) / gain)
-        y2 = int((data[(skeleton[i][1] - 1) * 3 + 1] - pad_y) / gain)
-        confidence2 = data[(skeleton[i][1] - 1) * 3 + 2]
+        x1 = int((data[(skeleton[i][0] - 1) * 2 + 0] - pad_x) / gain)
+        y1 = int((data[(skeleton[i][0] - 1) * 2 + 1] - pad_y) / gain)
+        x2 = int((data[(skeleton[i][1] - 1) * 2 + 0] - pad_x) / gain)
+        y2 = int((data[(skeleton[i][1] - 1) * 2 + 1] - pad_y) / gain)
 
-        if confidence1 < 0.5 or confidence2 < 0.5:
+        if any([n < 0 for n in [x1, y1, x2, y2]]):
             continue
 
         if display_meta.num_lines == MAX_ELEMENTS_IN_DISPLAY_META:
@@ -171,9 +168,11 @@ def tracker_src_pad_buffer_probe(pad, info, user_data):
                 obj_meta = pyds.NvDsObjectMeta.cast(l_obj.data)
             except StopIteration:
                 break
+            if obj_meta.obj_label == 'person':
 
-            parse_pose_from_meta(frame_meta, obj_meta)
-            set_custom_bbox(obj_meta)
+                parse_pose_from_meta(frame_meta, obj_meta)
+            if obj_meta.obj_label in ['person', 'basket', 'cart', 'box', 'hand']:
+                set_custom_bbox(obj_meta)
 
             try:
                 l_obj = l_obj.next
