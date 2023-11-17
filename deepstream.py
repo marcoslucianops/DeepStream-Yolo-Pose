@@ -295,6 +295,30 @@ def main():
         sys.stderr.write('ERROR: Failed to create nvdsosd\n')
         sys.exit(1)
 
+    # Create nvvideoconvert element
+    converter2 = Gst.ElementFactory.make("nvvideoconvert", "nvvideoconvert2")
+    if not converter2:
+        sys.stderr.write(" Unable to create nvvidconv2 \n")
+
+    print("Creating nvv4l2h264enc \n ")
+    # Create nvv4l2h264enc element
+    encoder = Gst.ElementFactory.make("nvv4l2h264enc", "encoder")
+    if not encoder:
+        sys.stderr.write(" Unable to create encoder \n")
+
+    print("Creating qtmux \n ")
+    # Create qtmux element
+    mux = Gst.ElementFactory.make("qtmux", "muxer")
+    if not mux:
+        sys.stderr.write(" Unable to create muxer \n")
+
+    # Create h264parse element
+    print("Creating h264parse\n ")
+    parser1 = Gst.ElementFactory.make("h264parse", "h264-parser2")
+    if not parser1:
+        sys.stderr.write(" Unable to create parser1 \n")
+
+    # Add all to pipeline
     sink = None
     if is_aarch64():
         sink = Gst.ElementFactory.make('nv3dsink', 'nv3dsink')
@@ -303,6 +327,14 @@ def main():
             sys.exit(1)
     else:
         sink = Gst.ElementFactory.make('nveglglessink', 'nveglglessink')
+        # sink = Gst.ElementFactory.make("filesink", "nvvideo-renderer")
+        # sink.set_property('location', 'test.mp4')
+
+        # Create filesink
+        sink = Gst.ElementFactory.make("filesink", "nvvideo-renderer")
+        # Set filesink properties
+        sink.set_property('location', 'test.mp4')
+        sink.set_property("sync", 0)  # Don't sync to clock, to allow samples to be played as fast as possible
         if not sink:
             sys.stderr.write('ERROR: Failed to create nveglglessink\n')
             sys.exit(1)
@@ -362,13 +394,21 @@ def main():
     pipeline.add(tracker)
     pipeline.add(converter)
     pipeline.add(osd)
+    pipeline.add(converter2)
+    pipeline.add(encoder)
+    pipeline.add(mux)
+    pipeline.add(parser1)
     pipeline.add(sink)
 
     streammux.link(pgie)
     pgie.link(tracker)
     tracker.link(converter)
     converter.link(osd)
-    osd.link(sink)
+    osd.link(converter2)
+    converter2.link(encoder)
+    encoder.link(parser1)
+    parser1.link(mux)
+    mux.link(sink)
 
     bus = pipeline.get_bus()
     bus.add_signal_watch()
