@@ -5,6 +5,8 @@ NVIDIA DeepStream SDK application for YOLO-Pose models
 --------------------------------------------------------------------------------------------------
 ### YOLO objetct detection models and other infos: https://github.com/marcoslucianops/DeepStream-Yolo
 --------------------------------------------------------------------------------------------------
+### Important: I've changed the output logic to prevent the TensorRT to use the wrong output order. Please export the ONNX model with the new export file, generate the TensorRT engine again with the updated files, and use the new config_infer_primary file according to your model
+--------------------------------------------------------------------------------------------------
 
 ### Getting started
 
@@ -12,6 +14,7 @@ NVIDIA DeepStream SDK application for YOLO-Pose models
 * [Instructions](#basic-usage)
 * [YOLOv7-Pose usage](docs/YOLOv7_Pose.md)
 * [YOLOv8-Pose usage](docs/YOLOv8_Pose.md)
+* [YOLO-NAS-Pose usage](docs/YOLONAS_Pose.md)
 * [NMS configuration](#nms-configuration)
 * [Detection threshold configuration](#detection-threshold-configuration)
 
@@ -19,6 +22,7 @@ NVIDIA DeepStream SDK application for YOLO-Pose models
 
 ### Supported models
 
+* [YOLO-NAS-Pose](https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS-POSE.md)
 * [YOLOv8-Pose](https://github.com/ultralytics/ultralytics)
 * [YOLOv7-Pose](https://github.com/WongKinYiu/yolov7)
 

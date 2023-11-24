@@ -22,7 +22,8 @@ class DeepStreamOutput(nn.Module):
         scores = x[:, :, 5:6]
         scores *= objectness
         kpts = x[:, :, 6:]
-        return boxes, scores, kpts
+        output = torch.cat((boxes, scores, kpts), dim=-1)
+        return output
 
 
 def suppress_warnings():
@@ -70,20 +71,14 @@ def main(args):
         'input': {
             0: 'batch'
         },
-        'boxes': {
-            0: 'batch'
-        },
-        'scores': {
-            0: 'batch'
-        },
-        'kpts': {
+        'output': {
             0: 'batch'
         }
     }
 
     print('\nExporting the model to ONNX')
     torch.onnx.export(model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset,
-                      do_constant_folding=True, input_names=['input'], output_names=['boxes', 'scores', 'kpts'],
+                      do_constant_folding=True, input_names=['input'], output_names=['output'],
                       dynamic_axes=dynamic_axes if args.dynamic else None)
 
     if args.simplify:

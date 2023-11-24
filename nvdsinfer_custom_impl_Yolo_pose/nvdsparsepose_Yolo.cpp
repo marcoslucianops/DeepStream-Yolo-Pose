@@ -35,6 +35,10 @@ extern "C" bool
 NvDsInferParseYoloPose(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferInstanceMaskInfo>& objectList);
 
+extern "C" bool
+NvDsInferParseYoloPoseE(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
+    NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferInstanceMaskInfo>& objectList);
+
 static std::vector<NvDsInferInstanceMaskInfo>
 nonMaximumSuppression(std::vector<NvDsInferInstanceMaskInfo> binfo)
 {
@@ -87,14 +91,15 @@ nmsAllClasses(std::vector<NvDsInferInstanceMaskInfo>& binfo)
 }
 
 static void
-addPoseProposal(const float* kpts, const uint& kptsSize, const uint& netW, const uint& netH, const uint& b,
+addPoseProposal(const float* output, const uint& channelsSize, const uint& netW, const uint& netH, const uint& b,
     NvDsInferInstanceMaskInfo& bbi)
 {
+  uint kptsSize = channelsSize - 5;
   bbi.mask = new float[kptsSize];
   for (uint p = 0; p < kptsSize / 3; ++p) {
-    bbi.mask[p * 3 + 0] = clamp(kpts[b * kptsSize + p * 3 + 0], 0, netW);
-    bbi.mask[p * 3 + 1] = clamp(kpts[b * kptsSize + p * 3 + 1], 0, netH);
-    bbi.mask[p * 3 + 2] = kpts[b * kptsSize + p * 3 + 2];
+    bbi.mask[p * 3 + 0] = clamp(output[b * channelsSize + p * 3 + 5], 0, netW);
+    bbi.mask[p * 3 + 1] = clamp(output[b * channelsSize + p * 3 + 6], 0, netH);
+    bbi.mask[p * 3 + 2] = output[b * channelsSize + p * 3 + 7];
   }
   bbi.mask_width = netW;
   bbi.mask_height = netH;
@@ -139,22 +144,22 @@ addBBoxProposal(const float bx1, const float by1, const float bx2, const float b
 }
 
 static std::vector<NvDsInferInstanceMaskInfo>
-decodeTensorYoloPose(const float* boxes, const float* scores, const float* kpts, const uint& outputSize,
-    const uint& kptsSize, const uint& netW, const uint& netH, const std::vector<float>& preclusterThreshold)
+decodeTensorYoloPose(const float* output, const uint& outputSize, const uint& channelsSize, const uint& netW,
+    const uint& netH, const std::vector<float>& preclusterThreshold)
 {
   std::vector<NvDsInferInstanceMaskInfo> binfo;
 
   for (uint b = 0; b < outputSize; ++b) {
-    float maxProb = scores[b];
+    float maxProb = output[b * channelsSize + 4];
 
     if (maxProb < preclusterThreshold[0]) {
       continue;
     }
 
-    float bxc = boxes[b * 4 + 0];
-    float byc = boxes[b * 4 + 1];
-    float bw = boxes[b * 4 + 2];
-    float bh = boxes[b * 4 + 3];
+    float bxc = output[b * channelsSize + 0];
+    float byc = output[b * channelsSize + 1];
+    float bw = output[b * channelsSize + 2];
+    float bh = output[b * channelsSize + 3];
 
     float bx1 = bxc - bw / 2;
     float by1 = byc - bh / 2;
@@ -164,7 +169,36 @@ decodeTensorYoloPose(const float* boxes, const float* scores, const float* kpts,
     NvDsInferInstanceMaskInfo bbi;
 
     addBBoxProposal(bx1, by1, bx2, by2, netW, netH, 0, maxProb, bbi);
-    addPoseProposal(kpts, kptsSize, netW, netH, b, bbi);
+    addPoseProposal(output, channelsSize, netW, netH, b, bbi);
+
+    binfo.push_back(bbi);
+  }
+
+  return binfo;
+}
+
+static std::vector<NvDsInferInstanceMaskInfo>
+decodeTensorYoloPoseE(const float* output, const uint& outputSize, const uint& channelsSize, const uint& netW,
+    const uint& netH, const std::vector<float>& preclusterThreshold)
+{
+  std::vector<NvDsInferInstanceMaskInfo> binfo;
+
+  for (uint b = 0; b < outputSize; ++b) {
+    float maxProb = output[b * channelsSize + 4];
+
+    if (maxProb < preclusterThreshold[0]) {
+      continue;
+    }
+
+    float bx1 = output[b * channelsSize + 0];
+    float by1 = output[b * channelsSize + 1];
+    float bx2 = output[b * channelsSize + 2];
+    float by2 = output[b * channelsSize + 3];
+
+    NvDsInferInstanceMaskInfo bbi;
+
+    addBBoxProposal(bx1, by1, bx2, by2, netW, netH, 0, maxProb, bbi);
+    addPoseProposal(output, channelsSize, netW, netH, b, bbi);
 
     binfo.push_back(bbi);
   }
@@ -182,16 +216,37 @@ NvDsInferParseCustomYoloPose(std::vector<NvDsInferLayerInfo> const& outputLayers
     return false;
   }
 
-  const NvDsInferLayerInfo& boxes = outputLayersInfo[0];
-  const NvDsInferLayerInfo& scores = outputLayersInfo[1];
-  const NvDsInferLayerInfo& kpts = outputLayersInfo[2];
+  const NvDsInferLayerInfo& output = outputLayersInfo[0];
 
-  const uint outputSize = boxes.inferDims.d[0];
-  const uint kptsSize = kpts.inferDims.d[1];
+  const uint outputSize = output.inferDims.d[0];
+  const uint channelsSize = output.inferDims.d[1];
 
-  std::vector<NvDsInferInstanceMaskInfo> objects = decodeTensorYoloPose((const float*) (boxes.buffer),
-      (const float*) (scores.buffer), (const float*) (kpts.buffer), outputSize, kptsSize, networkInfo.width,
-      networkInfo.height, detectionParams.perClassPreclusterThreshold);
+  std::vector<NvDsInferInstanceMaskInfo> objects = decodeTensorYoloPose((const float*) (output.buffer), outputSize,
+      channelsSize, networkInfo.width, networkInfo.height, detectionParams.perClassPreclusterThreshold);
+
+  objectList.clear();
+  objectList = nmsAllClasses(objects);
+
+  return true;
+}
+
+static bool
+NvDsInferParseCustomYoloPoseE(std::vector<NvDsInferLayerInfo> const& outputLayersInfo,
+    NvDsInferNetworkInfo const& networkInfo, NvDsInferParseDetectionParams const& detectionParams,
+    std::vector<NvDsInferInstanceMaskInfo>& objectList)
+{
+  if (outputLayersInfo.empty()) {
+    std::cerr << "ERROR: Could not find output layer in bbox parsing" << std::endl;
+    return false;
+  }
+
+  const NvDsInferLayerInfo& output = outputLayersInfo[0];
+
+  const uint outputSize = output.inferDims.d[0];
+  const uint channelsSize = output.inferDims.d[1];
+
+  std::vector<NvDsInferInstanceMaskInfo> objects = decodeTensorYoloPoseE((const float*) (output.buffer), outputSize,
+      channelsSize, networkInfo.width, networkInfo.height, detectionParams.perClassPreclusterThreshold);
 
   objectList.clear();
   objectList = nmsAllClasses(objects);
@@ -206,4 +261,12 @@ NvDsInferParseYoloPose(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, 
   return NvDsInferParseCustomYoloPose(outputLayersInfo, networkInfo, detectionParams, objectList);
 }
 
+extern "C" bool
+NvDsInferParseYoloPoseE(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, NvDsInferNetworkInfo const& networkInfo,
+    NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferInstanceMaskInfo>& objectList)
+{
+  return NvDsInferParseCustomYoloPoseE(outputLayersInfo, networkInfo, detectionParams, objectList);
+}
+
 CHECK_CUSTOM_INSTANCE_MASK_PARSE_FUNC_PROTOTYPE(NvDsInferParseYoloPose);
+CHECK_CUSTOM_INSTANCE_MASK_PARSE_FUNC_PROTOTYPE(NvDsInferParseYoloPoseE);
