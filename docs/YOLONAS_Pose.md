@@ -118,13 +118,3 @@ onnx-file=yolo_nas_pose_s_coco_pose.onnx
 parse-bbox-func-name=NvDsInferParseYoloPoseE
 ...
 ```
-
-**NOTE**: The **YOLO-NAS-Pose** resizes the input with left/top padding. To get better accuracy, use
-
-```
-[property]
-...
-maintain-aspect-ratio=1
-symmetric-padding=0
-...
-```

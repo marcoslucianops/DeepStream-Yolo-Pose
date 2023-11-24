@@ -100,13 +100,3 @@ onnx-file=yolov8s-pose.onnx
 parse-bbox-func-name=NvDsInferParseYoloPose
 ...
 ```
-
-**NOTE**: The **YOLOv8-Pose** resizes the input with center padding. To get better accuracy, use
-
-```
-[property]
-...
-maintain-aspect-ratio=1
-symmetric-padding=1
-...
-```
