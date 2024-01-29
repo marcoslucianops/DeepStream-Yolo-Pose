@@ -169,9 +169,12 @@ def tracker_src_pad_buffer_probe(pad, info, user_data):
             except StopIteration:
                 break
             if obj_meta.obj_label == 'person':
-
                 parse_pose_from_meta(frame_meta, obj_meta)
-            if obj_meta.obj_label in ['person', 'basket', 'cart', 'box', 'hand']:
+
+            skeleton_joint_names = ['nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear', 'left_shoulder',
+                                    'right_shoulder', 'left_elbow', 'right_elbow',  'left_wrist', 'right_wrist',
+                                    'left_hip', 'right_hip', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle']
+            if obj_meta.obj_label not in skeleton_joint_names:
                 set_custom_bbox(obj_meta)
 
             try:
