@@ -9,17 +9,15 @@
 
 ### Convert model
 
-#### 1. Download the YOLOv8 repo and install the requirements
+#### 1. Install Ultralytics
+To install the Ultralytics package along with all its requirements, make sure you are in a Python environment with version 3.8 or higher and PyTorch version 1.8 or higher. You can use pip to install the necessary packages.
 
-```
-git clone https://github.com/ultralytics/ultralytics.git
-cd ultralytics
-pip3 install -r requirements.txt
-python3 setup.py install
-pip3 install onnx onnxsim onnxruntime
+```bash
+pip install ultralytics
+pip install onnx onnxsim onnxruntime
 ```
 
-**NOTE**: It is recommended to use Python virtualenv.
+**NOTE**: 1.It is recommended to use Python virtualenv.2.Make sure to replace `pip3` with `pip` if you're using a Python environment where `pip` is the default package manager.
 
 #### 2. Copy conversor
 
