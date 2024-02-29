@@ -13,11 +13,11 @@
 To install the Ultralytics package along with all its requirements, make sure you are in a Python environment with version 3.8 or higher and PyTorch version 1.8 or higher. You can use pip to install the necessary packages.
 
 ```bash
-pip install ultralytics
-pip install onnx onnxsim onnxruntime
+pip3 install ultralytics
+pip3 install onnx onnxsim onnxruntime
 ```
 
-**NOTE**: 1.It is recommended to use Python virtualenv.2.Make sure to replace `pip3` with `pip` if you're using a Python environment where `pip` is the default package manager.
+**NOTE**: **1**.It is recommended to use Python virtualenv.  **2**.Make sure to replace `pip3` with `pip` if you're using a Python environment where `pip` is the default package manager.
 
 #### 2. Copy conversor
 
