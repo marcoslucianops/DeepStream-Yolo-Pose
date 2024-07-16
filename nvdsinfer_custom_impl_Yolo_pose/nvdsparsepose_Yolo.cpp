@@ -78,6 +78,8 @@ nonMaximumSuppression(std::vector<NvDsInferInstanceMaskInfo> binfo)
     }
     if (keep) {
       out.push_back(i);
+    } else {
+      delete[] i.mask;
     }
   }
   return out;
