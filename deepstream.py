@@ -76,8 +76,9 @@ class GETFPS:
 def set_custom_bbox(obj_meta):
     border_width = 6
     font_size = 18
-    x_offset = int(min(STREAMMUX_WIDTH - 1, max(0, obj_meta.rect_params.left - border_width * 0.5)))
-    y_offset = int(min(STREAMMUX_HEIGHT - 1, max(0, obj_meta.rect_params.top - font_size * 2 + border_width * 0.5 + 1)))
+
+    x_offset = obj_meta.rect_params.left - border_width * 0.5
+    y_offset = obj_meta.rect_params.top - font_size * 2 + border_width * 0.5 + 1
 
     obj_meta.rect_params.border_width = border_width
     obj_meta.rect_params.border_color.red = 0.0
@@ -86,8 +87,8 @@ def set_custom_bbox(obj_meta):
     obj_meta.rect_params.border_color.alpha = 1.0
     obj_meta.text_params.font_params.font_name = "Ubuntu"
     obj_meta.text_params.font_params.font_size = font_size
-    obj_meta.text_params.x_offset = x_offset
-    obj_meta.text_params.y_offset = y_offset
+    obj_meta.text_params.x_offset = int(min(STREAMMUX_WIDTH - 1, max(0, x_offset)))
+    obj_meta.text_params.y_offset = int(min(STREAMMUX_HEIGHT - 1, max(0, y_offset)))
     obj_meta.text_params.font_params.font_color.red = 1.0
     obj_meta.text_params.font_params.font_color.green = 1.0
     obj_meta.text_params.font_params.font_color.blue = 1.0
@@ -112,8 +113,8 @@ def parse_pose_from_meta(batch_meta, frame_meta, obj_meta):
     for i in range(num_joints):
         data = obj_meta.mask_params.get_mask_array()
 
-        xc = int((data[i * 3 + 0] - pad_x) / gain)
-        yc = int((data[i * 3 + 1] - pad_y) / gain)
+        xc = (data[i * 3 + 0] - pad_x) / gain
+        yc = (data[i * 3 + 1] - pad_y) / gain
         confidence = data[i * 3 + 2]
 
         if confidence < 0.5:
@@ -124,8 +125,8 @@ def parse_pose_from_meta(batch_meta, frame_meta, obj_meta):
             pyds.nvds_add_display_meta_to_frame(frame_meta, display_meta)
 
         circle_params = display_meta.circle_params[display_meta.num_circles]
-        circle_params.xc = xc
-        circle_params.yc = yc
+        circle_params.xc = int(min(STREAMMUX_WIDTH - 1, max(0, xc)))
+        circle_params.yc = int(min(STREAMMUX_HEIGHT - 1, max(0, yc)))
         circle_params.radius = 6
         circle_params.circle_color.red = 1.0
         circle_params.circle_color.green = 1.0
@@ -141,11 +142,11 @@ def parse_pose_from_meta(batch_meta, frame_meta, obj_meta):
     for i in range(num_joints + 2):
         data = obj_meta.mask_params.get_mask_array()
 
-        x1 = int((data[(skeleton[i][0] - 1) * 3 + 0] - pad_x) / gain)
-        y1 = int((data[(skeleton[i][0] - 1) * 3 + 1] - pad_y) / gain)
+        x1 = (data[(skeleton[i][0] - 1) * 3 + 0] - pad_x) / gain
+        y1 = (data[(skeleton[i][0] - 1) * 3 + 1] - pad_y) / gain
         confidence1 = data[(skeleton[i][0] - 1) * 3 + 2]
-        x2 = int((data[(skeleton[i][1] - 1) * 3 + 0] - pad_x) / gain)
-        y2 = int((data[(skeleton[i][1] - 1) * 3 + 1] - pad_y) / gain)
+        x2 = (data[(skeleton[i][1] - 1) * 3 + 0] - pad_x) / gain
+        y2 = (data[(skeleton[i][1] - 1) * 3 + 1] - pad_y) / gain
         confidence2 = data[(skeleton[i][1] - 1) * 3 + 2]
 
         if confidence1 < 0.5 or confidence2 < 0.5:
@@ -156,10 +157,10 @@ def parse_pose_from_meta(batch_meta, frame_meta, obj_meta):
             pyds.nvds_add_display_meta_to_frame(frame_meta, display_meta)
 
         line_params = display_meta.line_params[display_meta.num_lines]
-        line_params.x1 = x1
-        line_params.y1 = y1
-        line_params.x2 = x2
-        line_params.y2 = y2
+        line_params.x1 = int(min(STREAMMUX_WIDTH - 1, max(0, x1)))
+        line_params.y1 = int(min(STREAMMUX_HEIGHT - 1, max(0, y1)))
+        line_params.x2 = int(min(STREAMMUX_WIDTH - 1, max(0, x2)))
+        line_params.y2 = int(min(STREAMMUX_HEIGHT - 1, max(0, y2)))
         line_params.line_width = 6
         line_params.line_color.red = 0.0
         line_params.line_color.green = 0.0

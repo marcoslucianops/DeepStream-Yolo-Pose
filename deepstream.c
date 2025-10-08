@@ -15,9 +15,9 @@ set_custom_bbox(NvDsObjectMeta *obj_meta)
 {
   guint border_width = 6;
   guint font_size = 18;
-  guint x_offset = MIN(STREAMMUX_WIDTH - 1, (guint) MAX(0, obj_meta->rect_params.left - border_width * 0.5f));
-  guint y_offset = MIN(STREAMMUX_HEIGHT - 1, (guint) MAX(0, obj_meta->rect_params.top - font_size * 2 + border_width *
-      0.5f + 1));
+
+  gfloat x_offset = obj_meta->rect_params.left - border_width * 0.5f;
+  gfloat y_offset = obj_meta->rect_params.top - font_size * 2 + border_width * 0.5f + 1;
 
   obj_meta->rect_params.border_width = border_width;
   obj_meta->rect_params.border_color.red = 0.0;
@@ -26,8 +26,8 @@ set_custom_bbox(NvDsObjectMeta *obj_meta)
   obj_meta->rect_params.border_color.alpha = 1.0;
   obj_meta->text_params.font_params.font_name = (gchar *) "Ubuntu";
   obj_meta->text_params.font_params.font_size = font_size;
-  obj_meta->text_params.x_offset = x_offset;
-  obj_meta->text_params.y_offset = y_offset;
+  obj_meta->text_params.x_offset = (guint) MIN(STREAMMUX_WIDTH - 1, MAX(0, x_offset));
+  obj_meta->text_params.y_offset = (guint) MIN(STREAMMUX_HEIGHT - 1, MAX(0, y_offset));
   obj_meta->text_params.font_params.font_color.red = 1.0;
   obj_meta->text_params.font_params.font_color.green = 1.0;
   obj_meta->text_params.font_params.font_color.blue = 1.0;
@@ -44,7 +44,7 @@ parse_pose_from_meta(NvDsBatchMeta *batch_meta, NvDsFrameMeta *frame_meta, NvDsO
 {
   NvDsDisplayMeta *display_meta = NULL;
 
-  guint num_joints = obj_meta->mask_params.size / (sizeof(gfloat) * 3);
+  guint num_joints = obj_meta->mask_params.size / (sizeof(float) * 3);
 
   gfloat gain = MIN((gfloat) obj_meta->mask_params.width / STREAMMUX_WIDTH, (gfloat) obj_meta->mask_params.height /
       STREAMMUX_HEIGHT);
@@ -67,8 +67,8 @@ parse_pose_from_meta(NvDsBatchMeta *batch_meta, NvDsFrameMeta *frame_meta, NvDsO
     }
 
     NvOSD_CircleParams *circle_params = &display_meta->circle_params[display_meta->num_circles];
-    circle_params->xc = xc;
-    circle_params->yc = yc;
+    circle_params->xc = (guint) MIN(STREAMMUX_WIDTH - 1, MAX(0, xc));
+    circle_params->yc = (guint) MIN(STREAMMUX_HEIGHT - 1, MAX(0, yc));
     circle_params->radius = 6;
     circle_params->circle_color.red = 1.0;
     circle_params->circle_color.green = 1.0;
@@ -100,10 +100,10 @@ parse_pose_from_meta(NvDsBatchMeta *batch_meta, NvDsFrameMeta *frame_meta, NvDsO
     }
 
     NvOSD_LineParams *line_params = &display_meta->line_params[display_meta->num_lines];
-    line_params->x1 = x1;
-    line_params->y1 = y1;
-    line_params->x2 = x2;
-    line_params->y2 = y2;
+    line_params->x1 = (guint) MIN(STREAMMUX_WIDTH - 1, MAX(0, x1));
+    line_params->y1 = (guint) MIN(STREAMMUX_HEIGHT - 1, MAX(0, y1));
+    line_params->x2 = (guint) MIN(STREAMMUX_WIDTH - 1, MAX(0, x2));
+    line_params->y2 = (guint) MIN(STREAMMUX_HEIGHT - 1, MAX(0, y2));
     line_params->line_width = 6;
     line_params->line_color.red = 0.0;
     line_params->line_color.green = 0.0;
