@@ -11,7 +11,7 @@ NvDsInferParseYoloPose(std::vector<NvDsInferLayerInfo> const& outputLayersInfo, 
     NvDsInferParseDetectionParams const& detectionParams, std::vector<NvDsInferInstanceMaskInfo>& objectList);
 
 static float
-clamp(const float val, const float minVal, const float maxVal)
+clamp(float val, float minVal, float maxVal)
 {
   assert(minVal <= maxVal);
   return std::min(maxVal, std::max(minVal, val));
@@ -79,30 +79,24 @@ nmsAllClasses(std::vector<NvDsInferInstanceMaskInfo>& binfo)
 }
 
 static void
-addPoseProposal(const float* output, const uint& channelsSize, const uint& netW, const uint& netH, const uint& b,
-    NvDsInferInstanceMaskInfo& bbi)
+addPoseProposal(const float* output, size_t channelsSize, uint netW, uint netH, size_t n, NvDsInferInstanceMaskInfo& b)
 {
-  uint kptsSize = channelsSize - 5;
-  bbi.mask = new float[kptsSize];
-  for (uint p = 0; p < kptsSize / 3; ++p) {
-    bbi.mask[p * 3 + 0] = clamp(output[b * channelsSize + p * 3 + 5], 0, netW);
-    bbi.mask[p * 3 + 1] = clamp(output[b * channelsSize + p * 3 + 6], 0, netH);
-    bbi.mask[p * 3 + 2] = output[b * channelsSize + p * 3 + 7];
+  size_t kptsSize = channelsSize - 5;
+  b.mask = new float[kptsSize];
+  for (size_t p = 0; p < kptsSize / 3; ++p) {
+    b.mask[p * 3 + 0] = clamp(output[n * channelsSize + p * 3 + 5], 0, netW);
+    b.mask[p * 3 + 1] = clamp(output[n * channelsSize + p * 3 + 6], 0, netH);
+    b.mask[p * 3 + 2] = output[n * channelsSize + p * 3 + 7];
   }
-  bbi.mask_width = netW;
-  bbi.mask_height = netH;
-  bbi.mask_size = sizeof(float) * kptsSize;
+  b.mask_width = netW;
+  b.mask_height = netH;
+  b.mask_size = sizeof(float) * kptsSize;
 }
 
 static NvDsInferInstanceMaskInfo
-convertBBox(const float& bx1, const float& by1, const float& bx2, const float& by2, const uint& netW, const uint& netH)
+convertBBox(float x1, float y1, float x2, float y2, uint netW, uint netH)
 {
   NvDsInferInstanceMaskInfo b;
-
-  float x1 = bx1;
-  float y1 = by1;
-  float x2 = bx2;
-  float y2 = by2;
 
   x1 = clamp(x1, 0, netW);
   y1 = clamp(y1, 0, netH);
@@ -118,46 +112,46 @@ convertBBox(const float& bx1, const float& by1, const float& bx2, const float& b
 }
 
 static void
-addBBoxProposal(const float bx1, const float by1, const float bx2, const float by2, const uint& netW, const uint& netH,
-    const int maxIndex, const float maxProb, NvDsInferInstanceMaskInfo& bbi)
+addBBoxProposal(float x1, float y1, float x2, float y2, uint netW, uint netH, int maxIndex, float maxProb,
+    NvDsInferInstanceMaskInfo& b)
 {
-  bbi = convertBBox(bx1, by1, bx2, by2, netW, netH);
+  b = convertBBox(x1, y1, x2, y2, netW, netH);
 
-  if (bbi.width < 1 || bbi.height < 1) {
+  if (b.width < 1 || b.height < 1) {
       return;
   }
 
-  bbi.detectionConfidence = maxProb;
-  bbi.classId = maxIndex;
+  b.detectionConfidence = maxProb;
+  b.classId = maxIndex;
 }
 
 static std::vector<NvDsInferInstanceMaskInfo>
-decodeTensorYoloPose(const float* output, const uint& outputSize, const uint& channelsSize, const uint& netW,
-    const uint& netH, const std::vector<float>& preclusterThreshold)
+decodeTensorYoloPose(const float* output, size_t outputSize, size_t channelsSize, uint netW, uint netH,
+    const std::vector<float>& preclusterThreshold)
 {
-  std::vector<NvDsInferInstanceMaskInfo> binfo;
+  std::vector<NvDsInferInstanceMaskInfo> objects;
 
-  for (uint b = 0; b < outputSize; ++b) {
-    float maxProb = output[b * channelsSize + 4];
+  for (size_t n = 0; n < outputSize; ++n) {
+    float maxProb = output[n * channelsSize + 4];
 
     if (maxProb < preclusterThreshold[0]) {
       continue;
     }
 
-    float bx1 = output[b * channelsSize + 0];
-    float by1 = output[b * channelsSize + 1];
-    float bx2 = output[b * channelsSize + 2];
-    float by2 = output[b * channelsSize + 3];
+    float x1 = output[n * channelsSize + 0];
+    float y1 = output[n * channelsSize + 1];
+    float x2 = output[n * channelsSize + 2];
+    float y2 = output[n * channelsSize + 3];
 
-    NvDsInferInstanceMaskInfo bbi;
+    NvDsInferInstanceMaskInfo b;
 
-    addBBoxProposal(bx1, by1, bx2, by2, netW, netH, 0, maxProb, bbi);
-    addPoseProposal(output, channelsSize, netW, netH, b, bbi);
+    addBBoxProposal(x1, y1, x2, y2, netW, netH, 0, maxProb, b);
+    addPoseProposal(output, channelsSize, netW, netH, n, b);
 
-    binfo.push_back(bbi);
+    objects.push_back(b);
   }
 
-  return binfo;
+  return objects;
 }
 
 static bool
@@ -166,14 +160,14 @@ NvDsInferParseCustomYoloPose(std::vector<NvDsInferLayerInfo> const& outputLayers
     std::vector<NvDsInferInstanceMaskInfo>& objectList)
 {
   if (outputLayersInfo.empty()) {
-    std::cerr << "ERROR - Could not find output layer in bbox parsing" << std::endl;
+    std::cerr << "ERROR - Could not find output layer" << std::endl;
     return false;
   }
 
   const NvDsInferLayerInfo& output = outputLayersInfo[0];
 
-  const uint outputSize = output.inferDims.d[0];
-  const uint channelsSize = output.inferDims.d[1];
+  size_t outputSize = output.inferDims.d[0];
+  size_t channelsSize = output.inferDims.d[1];
 
   std::vector<NvDsInferInstanceMaskInfo> objects = decodeTensorYoloPose((const float*) (output.buffer), outputSize,
       channelsSize, networkInfo.width, networkInfo.height, detectionParams.perClassPreclusterThreshold);
