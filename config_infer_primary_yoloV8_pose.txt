@@ -16,6 +16,9 @@ network-type=3
 cluster-mode=4
 maintain-aspect-ratio=1
 symmetric-padding=1
+scaling-filter=1
+scaling-compute-hw=0
+force-implicit-batch-dim=0
 #workspace-size=2000
 parse-bbox-instance-mask-func-name=NvDsInferParseYoloPose
 custom-lib-path=nvdsinfer_custom_impl_Yolo_pose/libnvdsinfer_custom_impl_Yolo_pose.so
@@ -23,4 +26,3 @@ output-instance-mask=1
 
 [class-attrs-all]
 pre-cluster-threshold=0.25
-topk=300

@@ -1,9 +1,26 @@
 import os
+import sys
 import onnx
 import torch
 import torch.nn as nn
+from copy import deepcopy
 
-from super_gradients.training import models
+import ultralytics.utils
+import ultralytics.models.yolo
+import ultralytics.utils.tal as _m
+
+sys.modules["ultralytics.yolo"] = ultralytics.models.yolo
+sys.modules["ultralytics.yolo.utils"] = ultralytics.utils
+
+
+def _dist2bbox(distance, anchor_points, xywh=False, dim=-1):
+    lt, rb = distance.chunk(2, dim)
+    x1y1 = anchor_points - lt
+    x2y2 = anchor_points + rb
+    return torch.cat((x1y1, x2y2), dim)
+
+
+_m.dist2bbox.__code__ = _dist2bbox.__code__
 
 
 class DeepStreamOutput(nn.Module):
@@ -11,18 +28,35 @@ class DeepStreamOutput(nn.Module):
         super().__init__()
 
     def forward(self, x):
-        boxes = x[0]
-        scores = x[1]
-        b, c = boxes.shape[:2]
-        kpts = torch.cat((x[2], x[3].unsqueeze(-1)), dim=-1).view(b, c, -1)
-        return torch.cat([boxes, scores, kpts], dim=-1)
+        y = x.transpose(1, 2)
+        return y
 
 
-def yolonas_pose_export(model_name, weights, size):
-    img_size = size * 2 if len(size) == 1 else size
-    model = models.get(model_name, num_classes=17, checkpoint_path=weights)
+def yolo11_pose_export(weights, device, inplace=True, fuse=True):
+    ckpt = torch.load(weights, map_location="cpu")
+    ckpt = (ckpt.get("ema") or ckpt["model"]).to(device).float()
+    if not hasattr(ckpt, "stride"):
+        ckpt.stride = torch.tensor([32.])
+    if hasattr(ckpt, "names") and isinstance(ckpt.names, (list, tuple)):
+        ckpt.names = dict(enumerate(ckpt.names))
+    model = ckpt.fuse().eval() if fuse and hasattr(ckpt, "fuse") else ckpt.eval()
+    for m in model.modules():
+        t = type(m)
+        if hasattr(m, "inplace"):
+            m.inplace = inplace
+        elif t.__name__ == "Upsample" and not hasattr(m, "recompute_scale_factor"):
+            m.recompute_scale_factor = None
+    model = deepcopy(model).to(device)
+    for p in model.parameters():
+        p.requires_grad = False
     model.eval()
-    model.prep_model_for_conversion(input_size=[1, 3, *img_size])
+    model.float()
+    model = model.fuse()
+    for k, m in model.named_modules():
+        if m.__class__.__name__ == "Pose":
+            m.dynamic = False
+            m.export = True
+            m.format = "onnx"
     return model
 
 
@@ -40,10 +74,16 @@ def main(args):
 
     print(f"\nStarting: {args.weights}")
 
-    print("Opening YOLO-NAS-Pose model")
+    print("Opening YOLO11-Pose model")
 
     device = torch.device("cpu")
-    model = yolonas_pose_export(args.model, args.weights, args.size)
+    model = yolo11_pose_export(args.weights, device)
+
+    if len(model.names.keys()) > 0:
+        print("Creating labels.txt file")
+        with open("labels.txt", "w", encoding="utf-8") as f:
+            for name in model.names.values():
+                f.write(f"{name}\n")
 
     model = nn.Sequential(model, DeepStreamOutput())
 
@@ -79,17 +119,14 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description="DeepStream YOLO-NAS-Pose conversion")
-    parser.add_argument("-m", "--model", required=True, type=str, help="Model name (required)")
-    parser.add_argument("-w", "--weights", required=True, type=str, help="Input weights (.pth) file path (required)")
+    parser = argparse.ArgumentParser(description="DeepStream YOLO11-Pose conversion")
+    parser.add_argument("-w", "--weights", required=True, type=str, help="Input weights (.pt) file path (required)")
     parser.add_argument("-s", "--size", nargs="+", type=int, default=[640], help="Inference size [H,W] (default [640])")
-    parser.add_argument("--opset", type=int, default=14, help="ONNX opset version")
+    parser.add_argument("--opset", type=int, default=17, help="ONNX opset version")
     parser.add_argument("--simplify", action="store_true", help="ONNX simplify model")
     parser.add_argument("--dynamic", action="store_true", help="Dynamic batch-size")
     parser.add_argument("--batch", type=int, default=1, help="Static batch-size")
     args = parser.parse_args()
-    if args.model == "":
-        raise SystemExit("Invalid model name")
     if not os.path.isfile(args.weights):
         raise SystemExit("Invalid weights file")
     if args.dynamic and args.batch > 1:
