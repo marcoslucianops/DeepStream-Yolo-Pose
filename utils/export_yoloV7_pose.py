@@ -15,6 +15,10 @@ class DeepStreamOutput(nn.Module):
     def forward(self, x):
         x = x[0]
         boxes = x[:, :, :4]
+        convert_matrix = torch.tensor(
+            [[1, 0, 1, 0], [0, 1, 0, 1], [-0.5, 0, 0.5, 0], [0, -0.5, 0, 0.5]], dtype=boxes.dtype, device=boxes.device
+        )
+        boxes @= convert_matrix
         objectness = x[:, :, 4:5]
         scores = x[:, :, 5:6]
         scores *= objectness
