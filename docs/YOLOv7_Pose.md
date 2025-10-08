@@ -153,13 +153,3 @@ num-detected-classes=1
 parse-bbox-func-name=NvDsInferParseYoloPose
 ...
 ```
-
-**NOTE**: The **YOLOv7-Pose** resizes the input with center padding. To get better accuracy, use
-
-```
-[property]
-...
-maintain-aspect-ratio=1
-symmetric-padding=1
-...
-```
