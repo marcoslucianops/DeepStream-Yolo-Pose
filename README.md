@@ -3,7 +3,7 @@
 NVIDIA DeepStream SDK 8.0 / 7.1 / 7.0 / 6.4 / 6.3 / 6.2 / 6.1.1 / 6.1 / 6.0.1 / 6.0 application for YOLO-Pose models
 
 --------------------------------------------------------------------------------------------------
-### YOLO objetct detection models and other infos: https://github.com/marcoslucianops/DeepStream-Yolo
+### YOLO object detection models and other infos: https://github.com/marcoslucianops/DeepStream-Yolo
 --------------------------------------------------------------------------------------------------
 ### Important: Please export the ONNX model with the new export file, generate the TensorRT engine again with the updated files, and use the new config_infer_primary file according to your model
 --------------------------------------------------------------------------------------------------
