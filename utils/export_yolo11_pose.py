@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 from copy import deepcopy
 
+from ultralytics import YOLO
+from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 import ultralytics.utils
 import ultralytics.models.yolo
 import ultralytics.utils.tal as _m
@@ -32,31 +34,22 @@ class DeepStreamOutput(nn.Module):
         return y
 
 
-def yolo11_pose_export(weights, device, inplace=True, fuse=True):
-    ckpt = torch.load(weights, map_location="cpu")
-    ckpt = (ckpt.get("ema") or ckpt["model"]).to(device).float()
-    if not hasattr(ckpt, "stride"):
-        ckpt.stride = torch.tensor([32.])
-    if hasattr(ckpt, "names") and isinstance(ckpt.names, (list, tuple)):
-        ckpt.names = dict(enumerate(ckpt.names))
-    model = ckpt.fuse().eval() if fuse and hasattr(ckpt, "fuse") else ckpt.eval()
-    for m in model.modules():
-        t = type(m)
-        if hasattr(m, "inplace"):
-            m.inplace = inplace
-        elif t.__name__ == "Upsample" and not hasattr(m, "recompute_scale_factor"):
-            m.recompute_scale_factor = None
-    model = deepcopy(model).to(device)
+def yolo11_pose_export(weights, device, fuse=True):
+    model = YOLO(weights)
+    model = deepcopy(model.model).to(device)
     for p in model.parameters():
         p.requires_grad = False
     model.eval()
     model.float()
-    model = model.fuse()
+    if fuse:
+        model = model.fuse()
     for k, m in model.named_modules():
-        if m.__class__.__name__ == "Pose":
+        if isinstance(m, (Detect, RTDETRDecoder)):
             m.dynamic = False
             m.export = True
             m.format = "onnx"
+        elif isinstance(m, C2f):
+            m.forward = m.forward_split
     return model
 
 
