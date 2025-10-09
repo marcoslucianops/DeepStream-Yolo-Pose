@@ -93,11 +93,10 @@ addPoseProposal(const float* output, size_t channelsSize, uint netW, uint netH, 
   b.mask_size = sizeof(float) * kptsSize;
 }
 
-static NvDsInferInstanceMaskInfo
-convertBBox(float x1, float y1, float x2, float y2, uint netW, uint netH)
+static void
+addBBoxProposal(float x1, float y1, float x2, float y2, uint netW, uint netH, int maxIndex, float maxProb,
+    NvDsInferInstanceMaskInfo& b)
 {
-  NvDsInferInstanceMaskInfo b;
-
   x1 = clamp(x1, 0, netW);
   y1 = clamp(y1, 0, netH);
   x2 = clamp(x2, 0, netW);
@@ -107,15 +106,6 @@ convertBBox(float x1, float y1, float x2, float y2, uint netW, uint netH)
   b.width = clamp(x2 - x1, 0, netW);
   b.top = y1;
   b.height = clamp(y2 - y1, 0, netH);
-
-  return b;
-}
-
-static void
-addBBoxProposal(float x1, float y1, float x2, float y2, uint netW, uint netH, int maxIndex, float maxProb,
-    NvDsInferInstanceMaskInfo& b)
-{
-  b = convertBBox(x1, y1, x2, y2, netW, netH);
 
   if (b.width < 1 || b.height < 1) {
       return;
