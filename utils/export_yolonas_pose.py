@@ -14,7 +14,7 @@ class DeepStreamOutput(nn.Module):
         boxes = x[0]
         scores = x[1]
         b, c = boxes.shape[:2]
-        kpts = torch.cat((x[2], x[3].unsqueeze(-1)), dim=-1).view(b, c, -1)
+        kpts = torch.cat([x[2], x[3].unsqueeze(-1)], dim=-1).view(b, c, -1)
         return torch.cat([boxes, scores, kpts], dim=-1)
 
 

@@ -17,7 +17,7 @@ def _dist2bbox(distance, anchor_points, xywh=False, dim=-1):
     lt, rb = distance.chunk(2, dim)
     x1y1 = anchor_points - lt
     x2y2 = anchor_points + rb
-    return torch.cat((x1y1, x2y2), dim)
+    return torch.cat([x1y1, x2y2], dim)
 
 
 _m.dist2bbox.__code__ = _dist2bbox.__code__
