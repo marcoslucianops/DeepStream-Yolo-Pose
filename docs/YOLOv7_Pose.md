@@ -13,7 +13,7 @@
 #### 1. Download the YOLOv7 repo and install the requirements
 
 ```
-git clone https://github.com/WongKinYiu/yolov7.git
+git clone -b pose https://github.com/WongKinYiu/yolov7.git
 cd yolov7
 pip3 install -r requirements.txt
 pip3 install onnx onnxslim onnxruntime
@@ -35,11 +35,7 @@ wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.
 
 **NOTE**: You can use your custom model.
 
-#### 4. Reparameterize your model (for custom models)
-
-Custom YOLOv7 models cannot be directly converted to engine file. Therefore, you will have to reparameterize your model using the code [here](https://github.com/WongKinYiu/yolov7/blob/main/tools/reparameterization.ipynb). Make sure to convert your custom checkpoints in YOLOv7 repository, and then save your reparmeterized checkpoints for conversion in the next step.
-
-#### 5. Convert model
+#### 4. Convert model
 
 Generate the ONNX model file (example for YOLOv7-w6-Pose)
 
@@ -74,7 +70,7 @@ or
 -s 1280 1280
 ```
 
-**NOTE**: To simplify the ONNX model (DeepStream >= 6.0)
+**NOTE**: To simplify the ONNX model
 
 ```
 --simplify
@@ -92,7 +88,7 @@ or
 --batch 4
 ```
 
-#### 6. Copy generated files
+#### 5. Copy generated files
 
 Copy the generated ONNX model file and labels.txt file (if generated) to the `DeepStream-Yolo-Pose` folder.
 
@@ -151,5 +147,15 @@ onnx-file=yolov7-w6-pose.onnx
 num-detected-classes=1
 ...
 parse-bbox-func-name=NvDsInferParseYoloPose
+...
+```
+
+**NOTE**: The **DeepStream-Yolo-Pose** requires
+
+```
+[property]
+...
+maintain-aspect-ratio=1
+symmetric-padding=1
 ...
 ```

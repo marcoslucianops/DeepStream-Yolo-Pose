@@ -16,7 +16,7 @@ ifeq ($(TARGET_DEVICE), aarch64)
 	CFLAGS+= -DPLATFORM_TEGRA
 endif
 
-SRCS+= $(wildcard *.c)
+SRCS:= $(wildcard *.c)
 SRCS+= $(wildcard modules/*.c)
 
 INCS:= $(wildcard *.h)

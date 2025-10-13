@@ -64,7 +64,7 @@ or
 -s 1280 1280
 ```
 
-**NOTE**: To simplify the ONNX model (DeepStream >= 6.0)
+**NOTE**: To simplify the ONNX model
 
 ```
 --simplify
@@ -141,5 +141,15 @@ onnx-file=yolov8s-pose.onnx
 num-detected-classes=1
 ...
 parse-bbox-func-name=NvDsInferParseYoloPose
+...
+```
+
+**NOTE**: The **DeepStream-Yolo-Pose** requires
+
+```
+[property]
+...
+maintain-aspect-ratio=1
+symmetric-padding=1
 ...
 ```

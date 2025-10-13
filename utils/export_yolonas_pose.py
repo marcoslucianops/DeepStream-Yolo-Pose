@@ -63,8 +63,15 @@ def main(args):
 
     print("Exporting the model to ONNX")
     torch.onnx.export(
-        model, onnx_input_im, onnx_output_file, verbose=False, opset_version=args.opset, do_constant_folding=True,
-        input_names=["input"], output_names=["output"], dynamic_axes=dynamic_axes if args.dynamic else None
+        model,
+        onnx_input_im,
+        onnx_output_file,
+        verbose=False,
+        opset_version=args.opset,
+        do_constant_folding=True,
+        input_names=["input"],
+        output_names=["output"],
+        dynamic_axes=dynamic_axes if args.dynamic else None
     )
 
     if args.simplify:
@@ -83,7 +90,7 @@ def parse_args():
     parser.add_argument("-m", "--model", required=True, type=str, help="Model name (required)")
     parser.add_argument("-w", "--weights", required=True, type=str, help="Input weights (.pth) file path (required)")
     parser.add_argument("-s", "--size", nargs="+", type=int, default=[640], help="Inference size [H,W] (default [640])")
-    parser.add_argument("--opset", type=int, default=14, help="ONNX opset version")
+    parser.add_argument("--opset", type=int, default=17, help="ONNX opset version")
     parser.add_argument("--simplify", action="store_true", help="ONNX simplify model")
     parser.add_argument("--dynamic", action="store_true", help="Dynamic batch-size")
     parser.add_argument("--batch", type=int, default=1, help="Static batch-size")
