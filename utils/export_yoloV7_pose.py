@@ -35,7 +35,7 @@ def yolov7_pose_export(weights, device):
                 m.act = Hardswish()
             elif isinstance(m.act, nn.SiLU):
                 m.act = SiLU()
-    model.model[-1].export = True
+    model.model[-1].training = False
     model.eval()
     return model
 
